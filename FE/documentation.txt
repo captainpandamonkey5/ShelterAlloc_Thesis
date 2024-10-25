@@ -1,3 +1,21 @@
+Setting up PySide6, PyQt6 and Qt Designer
+
+Go to cmd admin type ff:
+pip install PySide6
+pip install PyQt6
+pip install PyQt6-tools
+pip install pandas
+pip install openpyxl xlrd (to read .xlsx and .xls files)
+
+Install Qt Designer with this link: https://build-system.fman.io/qt-designer-download
+
+to convert widget.ui to ui_widget.py
+pyuic6 widget.ui -o ui_widget.py
+pyside6-uic widget.ui > ui_widget.py
+
+to convert resources.qrc to resources_rc.py
+pyside6-rcc resources.qrc -o resources_rc.py
+
 - start entityman and entitymanshelter backend 10-24-24
 
 task - 10-24-24
@@ -10,3 +28,8 @@ task - 10-24-24
 - added index.py where all bullshit of buttons, open of new dialog, and such will be handled
 - convert dashboard.ui to ui_dashboard.py
 - advanced settings btn now working
+
+task - 10-25-24
+- back btn function finished
+- changes in entmanshel.ui and entmanshel.py
+- import now working

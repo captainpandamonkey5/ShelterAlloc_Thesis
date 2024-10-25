@@ -49,6 +49,7 @@ class Ui_EntityManagementCommunities(object):
         self.mc_back_btn.setIcon(icon)
         self.mc_back_btn.setIconSize(QSize(40, 40))
         self.mc_back_btn.setCheckable(True)
+        self.mc_back_btn.setChecked(True)
 
         self.horizontalLayout.addWidget(self.mc_back_btn)
 
@@ -65,12 +66,37 @@ class Ui_EntityManagementCommunities(object):
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
-        self.mc_add_community_btn = QPushButton(self.frame)
-        self.mc_add_community_btn.setObjectName(u"mc_add_community_btn")
-        self.mc_add_community_btn.setMinimumSize(QSize(281, 61))
+        self.mc_import_btn = QPushButton(self.frame)
+        self.mc_import_btn.setObjectName(u"mc_import_btn")
+        self.mc_import_btn.setMinimumSize(QSize(191, 51))
+        self.mc_import_btn.setMaximumSize(QSize(161, 51))
         font1 = QFont()
         font1.setPointSize(15)
         font1.setBold(True)
+        self.mc_import_btn.setFont(font1)
+        self.mc_import_btn.setStyleSheet(u"QPushButton {\n"
+"    background-color: #FF3B30;\n"
+"    color: white;\n"
+"    padding: 5px;\n"
+"    border: none;\n"
+"    border-radius: 15px;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: #FF5A4D;\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"    background-color: #E63946;\n"
+"}\n"
+"")
+        self.mc_import_btn.setCheckable(True)
+
+        self.horizontalLayout.addWidget(self.mc_import_btn)
+
+        self.mc_add_community_btn = QPushButton(self.frame)
+        self.mc_add_community_btn.setObjectName(u"mc_add_community_btn")
+        self.mc_add_community_btn.setMinimumSize(QSize(281, 61))
         self.mc_add_community_btn.setFont(font1)
         self.mc_add_community_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.mc_add_community_btn.setStyleSheet(u"QPushButton {\n"
@@ -218,6 +244,7 @@ class Ui_EntityManagementCommunities(object):
 "    background-color: #E63946;\n"
 "}\n"
 "")
+        self.mc_cancel_changes_btn.setCheckable(True)
 
         self.horizontalLayout_3.addWidget(self.mc_cancel_changes_btn)
 
@@ -243,6 +270,7 @@ class Ui_EntityManagementCommunities(object):
 "    background-color: #1C5739;\n"
 "}\n"
 "")
+        self.mc_save_changes_btn.setCheckable(True)
 
         self.horizontalLayout_3.addWidget(self.mc_save_changes_btn)
 
@@ -262,6 +290,7 @@ class Ui_EntityManagementCommunities(object):
         EntityManagementCommunities.setWindowTitle(QCoreApplication.translate("EntityManagementCommunities", u"Dialog", None))
         self.mc_back_btn.setText("")
         self.label.setText(QCoreApplication.translate("EntityManagementCommunities", u"Manage Communities", None))
+        self.mc_import_btn.setText(QCoreApplication.translate("EntityManagementCommunities", u"Import XLSX", None))
         self.mc_add_community_btn.setText(QCoreApplication.translate("EntityManagementCommunities", u"Add Community", None))
         ___qtablewidgetitem = self.communityInfo_table.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("EntityManagementCommunities", u"Name", None));
