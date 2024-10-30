@@ -1,14 +1,19 @@
 from PySide6.QtWidgets import QMainWindow, QMenu, QDialog, QTableWidgetItem, QFileDialog, QCheckBox, QWidget, QHBoxLayout, QPushButton, QMessageBox
 from PySide6.QtGui import QAction, QColor, QIcon, QCursor
 from PySide6.QtCore import Qt
+from functools import partial
 from ui_dashboard import Ui_MainWindow
 import pandas as pd
+import os
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("Dashboard")
+
+        self.file_path = os.path.join(os.path.expanduser("~"), "Documents", "CommunityData.xlsx")
+        #buttons on the bashboard
         self.advanced_settings_com.clicked.connect(self.open_entitymanagement_dialog)
         self.advanced_settings_shel.clicked.connect(self.open_entitymanagement_shelter_dialog)
 
@@ -21,10 +26,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = QDialog(self)
         addEMC_dialog = Ui_EntityManagementCommunities()
         addEMC_dialog.setupUi(dialog)
+
+        self.load_from_excel(addEMC_dialog.communityInfo_table)
+
+        #buttons showing on the entyman-dialog
         addEMC_dialog.mc_back_btn.clicked.connect(dialog.close)
         addEMC_dialog.mc_cancel_changes_btn.clicked.connect(dialog.close)
         addEMC_dialog.mc_import_btn.clicked.connect(lambda: self.import_excel_data(addEMC_dialog.communityInfo_table, dialog))
         addEMC_dialog.mc_save_changes_btn.clicked.connect(lambda: self.save_to_excel(addEMC_dialog.communityInfo_table))
+        addEMC_dialog.mc_add_community_btn.clicked.connect(lambda: self.add_row(addEMC_dialog.communityInfo_table, dialog))
 
         result = dialog.exec()
 
@@ -37,7 +47,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = QDialog(self)
         addEMS_dialog = Ui_entityManagementShelter()
         addEMS_dialog.setupUi(dialog)
-        
+        #buttons showing on the entymanshel-dialog
         addEMS_dialog.ms_back_btn.clicked.connect(dialog.close)
         addEMS_dialog.ms_cancel_btn.clicked.connect(dialog.close)
         addEMS_dialog.ms_import_btn.clicked.connect(lambda: self.import_excel_data(addEMS_dialog.shelterInfo_table, dialog))
@@ -59,6 +69,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # Clear any existing rows
             table_widget.setRowCount(0)
+
+            table_widget.setStyleSheet("QTableWidgetItem { color: black; }")
 
             # Populate the table with data
             for row_idx, row_data in data.iterrows():
@@ -92,14 +104,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 layout_btn.setAlignment(Qt.AlignCenter)
                 delete_btn = QPushButton()
                 delete_btn.setIcon(QIcon("ICONS/9022869_duotone_trash.png"))
-                delete_btn.clicked.connect(lambda _, r=row_position: self.delete_row(table_widget, r))
+                delete_btn.clicked.connect(partial(self.delete_row, table_widget, row_position))
                 layout_btn.addWidget(delete_btn)
                 layout_btn.setContentsMargins(0, 0, 0, 0)
                 table_widget.setCellWidget(row_position, table_widget.columnCount() - 1, delete_btn_widget)
 
             # Resize columns to fit their contents
             table_widget.resizeColumnsToContents()
-    
     def save_to_excel(self, table_widget):
         data = []
         row_count = table_widget.rowCount()
@@ -113,26 +124,71 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             row_data = []
             for col in range(1, column_count - 1):
                 item = table_widget.item(row, col)
-                row_data.append(item.text() if item is not None else "")
+                row_data.append(item.text() if item else "")
             data.append(row_data)
 
         dataframe = pd.DataFrame(data, columns=headers)  #DataFrame conversion
 
-        # Prompt user to select a file location to save the Excel file
-        file_dialog = QFileDialog(self)
-        file_dialog.setAcceptMode(QFileDialog.AcceptSave)
-        file_dialog.setNameFilters(["Excel Files (*.xlsx)"])
-        file_dialog.setDefaultSuffix("xlsx")
+        try:
+            # Save the DataFrame to Excel
+            dataframe.to_excel(self.file_path, index=False)
+            QMessageBox.information(self, "Success", f"File saved successfully as {self.file_path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save file: {e}")
 
-        if file_dialog.exec() == QFileDialog.Accepted:
-            file_path = file_dialog.selectedFiles()[0]
-
+    def load_from_excel(self, table_widget):
+        # Load data from persistent file if it exists
+        if os.path.exists(self.file_path):
             try:
-                # Save the DataFrame to Excel
-                dataframe.to_excel(file_path, index=False)
-                QMessageBox.information(self, "Success", f"File saved successfully as {file_path}")
+                dataframe = pd.read_excel(self.file_path).fillna("")
+
+                # Clear the table and set up headers
+                table_widget.setRowCount(0)
+                table_widget.setColumnCount(len(dataframe.columns) + 2)
+                table_widget.setHorizontalHeaderLabels(['Select'] + list(dataframe.columns) + ['Delete'])
+
+                # Populate the table with the data
+                for row_idx, row_data in dataframe.iterrows():
+                    row_position = table_widget.rowCount()
+                    table_widget.insertRow(row_position)
+
+                    # Add checkbox in the first column
+                    check_box_widget = QWidget()
+                    check_box_widget.setCursor(QCursor(Qt.PointingHandCursor))
+                    layout_check = QHBoxLayout(check_box_widget)
+                    layout_check.setAlignment(Qt.AlignCenter)
+                    checkbox = QCheckBox()
+                    layout_check.addWidget(checkbox)
+                    checkbox.setStyleSheet("""
+                        background-color: #C0C0C0;
+                        color: black;
+                                        """)
+                    layout_check.setContentsMargins(0, 0, 0, 0)
+                    table_widget.setCellWidget(row_position, 0, check_box_widget)
+
+                    # Populate each column except for Select and Delete buttons
+                    for col_idx, value in enumerate(row_data, start=1):
+                        item = QTableWidgetItem(str(value))
+                        table_widget.setItem(row_position, col_idx, item)
+
+                    delete_btn_widget = QWidget()
+                    delete_btn_widget.setCursor(QCursor(Qt.PointingHandCursor))
+                    layout_btn = QHBoxLayout(delete_btn_widget)
+                    layout_btn.setAlignment(Qt.AlignCenter)
+                    delete_btn = QPushButton()
+                    delete_btn.setIcon(QIcon("ICONS/9022869_duotone_trash.png"))
+                    delete_btn.clicked.connect(partial(self.delete_row, table_widget, row_position))
+                    layout_btn.addWidget(delete_btn)
+                    layout_btn.setContentsMargins(0, 0, 0, 0)
+                    table_widget.setCellWidget(row_position, table_widget.columnCount() - 1, delete_btn_widget)
+
+                    # Resize columns to fit their contents
+                    table_widget.resizeColumnsToContents()
+
+                    # Add additional elements (checkbox, delete button, etc.) for each row if needed
+                QMessageBox.information(self, "Load", "Data loaded successfully.")
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to save file: {e}")
+                QMessageBox.critical(self, "Error", f"Failed to load file: {e}")
 
     def setup_delete_button(self, button, table_widget):
         button.clicked.connect(lambda: self.delete_rows(table_widget))
@@ -176,3 +232,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if response == QMessageBox.Yes:
             table_widget.removeRow(row_position)
+            
+            # Reconnect delete buttons with updated row indices after deletion
+            for row in range(table_widget.rowCount()):
+                delete_btn_widget = table_widget.cellWidget(row, table_widget.columnCount() - 1)
+                if delete_btn_widget is not None:
+                    delete_btn = delete_btn_widget.findChild(QPushButton)
+                    if delete_btn:
+                        delete_btn.clicked.disconnect()
+                        delete_btn.clicked.connect(partial(self.delete_row, table_widget, row))
+
+    def add_row(self, table_widget, dialog):
+        row_position = table_widget.rowCount()
+        table_widget.insertRow(row_position)
+
+        check_box_widget = QWidget()
+        layout_check = QHBoxLayout(check_box_widget)
+        layout_check.setAlignment(Qt.AlignCenter)
+        checkbox = QCheckBox()
+        layout_check.addWidget(checkbox)
+        checkbox.setStyleSheet("""
+                background-color: #C0C0C0;
+                color: black;
+                               """)
+        layout_check.setContentsMargins(0, 0, 0, 0)
+        table_widget.setCellWidget(row_position, 0, check_box_widget)
+
+        # Add empty cells in each column (except the last column if it's for delete buttons)
+        for col in range(1, table_widget.columnCount() - 1):
+            item = QTableWidgetItem("")  # Empty item for user input
+            table_widget.setItem(row_position, col, item)
+
+        delete_btn_widget = QWidget()
+        delete_btn_widget.setCursor(QCursor(Qt.PointingHandCursor))
+        layout_btn = QHBoxLayout(delete_btn_widget)
+        layout_btn.setAlignment(Qt.AlignCenter)
+        delete_btn = QPushButton()
+        delete_btn.setIcon(QIcon("ICONS/9022869_duotone_trash.png"))
+        delete_btn.clicked.connect(partial(self.delete_row, table_widget, row_position))
+        layout_btn.addWidget(delete_btn)
+        layout_btn.setContentsMargins(0, 0, 0, 0)
+        table_widget.setCellWidget(row_position, table_widget.columnCount() - 1, delete_btn_widget)
