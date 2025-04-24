@@ -9,6 +9,53 @@ pip install openpyxl xlrd (to read .xlsx and .xls files)
 pip install folium
 pip install osmnx
 pip install networkx
+pip install scikit-learn
+pip install msoffcrypto-tools
+pip install xlsxwriter
+pip install pyinstaller
+    on console
+        pyinstaller --onefile main.py or pyinstaller --onefile --noconsole main.py
+    on main.spec copy paste this
+        a = Analysis(
+            ['main.py'],
+            pathex=[],
+            binaries=[],
+            datas=[("commData.xlsx","."), ("shelData.xlsx","."),("map.html","."),("ICONS","ICONS"),("tutorial","tutorial"),("allocation_results.xlsx","."),("modelCommData.xlsx","."),("modelShelData.xlsx","."),("modelPerformanceResult.txt","."),("distance_matrix.xlsx","."),("modelParam.xlsx","."),("ReportTemplate.xlsx",".") ],
+            hiddenimports=[],
+            hookspath=[],
+            hooksconfig={},
+            runtime_hooks=[],
+            excludes=[],
+            noarchive=False,
+            optimize=0,
+        )
+        pyz = PYZ(a.pure)
+
+        exe = EXE(
+            pyz,
+            a.scripts,
+            a.binaries,
+            a.datas,
+            [],
+            name='Shelter Allocation',
+            debug=False,
+            bootloader_ignore_signals=False,
+            strip=False,
+            upx=True,
+            upx_exclude=[],
+            runtime_tmpdir=None,
+            console=False,
+            disable_windowed_traceback=False,
+            argv_emulation=False,
+            target_arch=None,
+            codesign_identity=None,
+            entitlements_file=None,
+            icon='ICONS/logo.png',
+        )
+    on console
+        pyinstaller main.spec
+    on dist go to main
+        double click or run main.exe
 
 Install Qt Designer with this link: https://build-system.fman.io/qt-designer-download
 
@@ -19,12 +66,11 @@ pyside6-uic widget.ui > ui_widget.py
 to convert resources.qrc to resources_rc.py
 pyside6-rcc resources.qrc -o resources_rc.py
 
-to do:
-- light mode and dark mode option
-- connect pag save sa main window communities
-- solve settings & progress
-- kapag inuupdate yung names ng shelter and community hindi nag uupdate kaagad
-- figure out that damn background problem it looks ass
+pyside6-uic shelterallocationreport.ui > ui_shelterallocationreport.py
+pyside6-uic dashboard.ui >  ui_dashboard.py
+pyside6-uic entityManagement.ui >  ui_entityManagement.py
+pyside6-uic entityManagementShelter.ui >  ui_entityManagementShelter.py
+pyside6-uic solvingProgress.ui >  ui_solvingProgress.py
+pyside6-uic helpDialog.ui >  ui_helpDialog.py
 
-issues:
-- multi-row deleteion issues
+pyside6-uic dashboard.ui -o  ui_dashboard.py
